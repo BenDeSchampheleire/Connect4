@@ -1,4 +1,4 @@
-module connect4.connect4bis {
+module connect4 {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.web;
