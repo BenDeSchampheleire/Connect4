@@ -1,4 +1,5 @@
 package application;
+import game.Grid;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -18,6 +19,8 @@ import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.Scanner;
+
 public class Test extends Application {
 
     private SimpleObjectProperty<Color> playerColor = new SimpleObjectProperty<>(Color.RED);
@@ -29,48 +32,59 @@ public class Test extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+        // asks the user how many columns he wants
+        int columnNumber;
+        do {
+            System.out.println("How many columns? (Has to be between 4 and 8) ");
+            Scanner Csc = new Scanner(System.in);
+            columnNumber = Csc.nextInt();
+        } while (columnNumber < 4 || columnNumber > 8);
+
+        // asks the user how many rows he wants
+        int rowNumber;
+        do {
+            System.out.println("How many rows? (Has to be between 4 and 8) ");
+            Scanner Rsc = new Scanner(System.in);
+            rowNumber = Rsc.nextInt();
+        } while (rowNumber < 4 || rowNumber > 8);;
+
         final BorderPane borderPane = new BorderPane();
         final GridPane gridPane = new GridPane();
         primaryStage.setTitle("Connect4");
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
 
-        Scene scene = new Scene(borderPane, 900, 900, true);
-        scene.setFill(Color.BLACK);
-        //scene.getStylesheets().add("net/glyphsoft/styles.css");
+        Scene scene = new Scene(borderPane, 700, 700, true);
+        scene.setFill(Color.TRANSPARENT);
 
-        gridPane.setTranslateY(50);
         gridPane.setAlignment(Pos.CENTER);
 
-        gridPane.getColumnConstraints().addAll(
-                new ColumnConstraints(100,100,Double.MAX_VALUE),
-                new ColumnConstraints(100,100,Double.MAX_VALUE),
-                new ColumnConstraints(100,100,Double.MAX_VALUE),
-                new ColumnConstraints(100,100,Double.MAX_VALUE),
-                new ColumnConstraints(100,100,Double.MAX_VALUE),
-                new ColumnConstraints(100,100,Double.MAX_VALUE),
-                new ColumnConstraints(100,100,Double.MAX_VALUE));
-        gridPane.getRowConstraints().addAll(
-                new RowConstraints(100,100,Double.MAX_VALUE),
-                new RowConstraints(100,100,Double.MAX_VALUE),
-                new RowConstraints(100,100,Double.MAX_VALUE),
-                new RowConstraints(100,100,Double.MAX_VALUE),
-                new RowConstraints(100,100,Double.MAX_VALUE),
-                new RowConstraints(100,100,Double.MAX_VALUE));
+        // creation of columns
+        for (int i=0; i<columnNumber; i++) {
+            gridPane.getColumnConstraints().addAll(new ColumnConstraints(100,100, Double.MAX_VALUE));
+        }
 
-        createGrids(gridPane);
+        // creation of rows
+        for (int j=0; j<rowNumber; j++) {
+            gridPane.getRowConstraints().addAll(new RowConstraints(100,100, Double.MAX_VALUE));
+        }
 
+        // creation of the "real" grid (not the graphical one)
+        Grid grid = new Grid(rowNumber, columnNumber);
+
+        // creation of the grid
+        createGrids(gridPane, grid);
         borderPane.setCenter(gridPane);
-
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.show();
     }
 
     //Create Grids
-    private void createGrids(final GridPane gridPane){
+    private void createGrids(final GridPane gridPane, Grid grid){
 
         gridPane.getChildren().clear();
 
+        // creation of the visual grid
         for(int r = 0; r < gridPane.getRowConstraints().size(); r++){
             for(int c = 0; c < gridPane.getColumnConstraints().size(); c++){
 
@@ -82,69 +96,42 @@ public class Test extends Application {
                 cell.setFill(Color.BLUE);
                 cell.setStroke(Color.BLUE);
                 cell.setOpacity(0.8);
-                DropShadow effect = new DropShadow();
-                effect.setSpread(.2);
-                effect.setRadius(25);
-                effect.setColor(Color.BLUE);
-                cell.setEffect(effect);
 
+                // empty cells
                 final Circle diskPreview = new Circle(40);
                 diskPreview.setOpacity(0.5);
                 diskPreview.setFill(Color.TRANSPARENT);
 
+                // displays a red or yellow circle whenever the player puts the mouse on a playable cell
                 diskPreview.setOnMouseEntered(arg0 -> {
-                    if(playerColor.get()==Color.RED){
+                    if(playerColor.get() == Color.RED){
                         diskPreview.setFill(Color.RED);
                     }else{
                         diskPreview.setFill(Color.YELLOW);
                     }
                 });
 
+                // removes the circle whenever the player takes the mouse off the cell
                 diskPreview.setOnMouseExited(arg0 -> diskPreview.setFill(Color.TRANSPARENT));
 
                 final Circle disk = new Circle(40);
                 disk.fillProperty().bind(playerColor);
-                disk.setOpacity(0.5);
+                disk.setStroke(Color.BLACK);
                 disk.setTranslateY(-(100*(r+1)));
 
-                final TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300), disk);
-
-                disk.setOnMouseEntered(arg0 -> {
-                    if(playerColor.get()==Color.RED){
-                        diskPreview.setFill(Color.RED);
-                    }else{
-                        diskPreview.setFill(Color.YELLOW);
-                    }
-                });
-
-                disk.setOnMouseExited(arg0 -> diskPreview.setFill(Color.TRANSPARENT));
-
-                disk.setOnMouseClicked(arg0 -> {
-                    if(disk.getTranslateY()!=0){
-                        translateTransition.setToY(0);
-                        translateTransition.play();
-                        if(playerColor.get()==Color.RED){
-                            playerColor.set(Color.YELLOW);
-                            disk.fillProperty().bind(new SimpleObjectProperty<Color>(Color.RED));
-                        }else{
-                            playerColor.set(Color.RED);
-                            disk.fillProperty().bind(new SimpleObjectProperty<Color>(Color.YELLOW));
-                        }
-                    }
-                });
+                final TranslateTransition translateTransition = new TranslateTransition(Duration.millis(200), disk);
 
                 diskPreview.setOnMouseClicked(arg0 -> {
-                    if(disk.getTranslateY()!=0){
                         translateTransition.setToY(0);
                         translateTransition.play();
-                        if(playerColor.get()==Color.RED){
+                        if(playerColor.get() == Color.RED){
                             playerColor.set(Color.YELLOW);
                             disk.fillProperty().bind(new SimpleObjectProperty<Color>(Color.RED));
                         }else{
                             playerColor.set(Color.RED);
                             disk.fillProperty().bind(new SimpleObjectProperty<Color>(Color.YELLOW));
                         }
-                    }
+
                 });
 
                 StackPane stack = new StackPane();
