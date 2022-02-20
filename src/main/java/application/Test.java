@@ -46,7 +46,7 @@ public class Test extends Application {
             System.out.println("How many rows? (Has to be between 4 and 8) ");
             Scanner Rsc = new Scanner(System.in);
             rowNumber = Rsc.nextInt();
-        } while (rowNumber < 4 || rowNumber > 8);;
+        } while (rowNumber < 4 || rowNumber > 8);
 
         final BorderPane borderPane = new BorderPane();
         final GridPane gridPane = new GridPane();
@@ -126,10 +126,10 @@ public class Test extends Application {
                         translateTransition.play();
                         if(playerColor.get() == Color.RED){
                             playerColor.set(Color.YELLOW);
-                            disk.fillProperty().bind(new SimpleObjectProperty<Color>(Color.RED));
+                            disk.fillProperty().bind(new SimpleObjectProperty<>(Color.RED));
                         }else{
                             playerColor.set(Color.RED);
-                            disk.fillProperty().bind(new SimpleObjectProperty<Color>(Color.YELLOW));
+                            disk.fillProperty().bind(new SimpleObjectProperty<>(Color.YELLOW));
                         }
 
                 });
