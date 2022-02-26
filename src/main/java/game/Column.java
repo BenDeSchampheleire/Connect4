@@ -1,15 +1,31 @@
 package game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class Column {
+/**
+ * This class represents each column
+ *
+ */
+public class Column implements Serializable {
+
 
     private int id;
     private int height;
     private ArrayList<Checker> column;
 
+    /**
+     * Creates a column object
+     * A column has a list of checkers
+     * It is initialized with white checkers
+     *
+     * @param id: index of the column in the grid
+     *        height: size of the column
+     *
+     */
     public Column(int id, int height) {
+
         this.id = id;
         this.height = height;
         this.column = new ArrayList<>(height);
@@ -35,11 +51,23 @@ public class Column {
         this.column = column;
     }
 
+    /**
+     * This method checks is the column if empty
+     *
+     * @return true if the column is empty
+     */
     public boolean check_empty() {
+
         return this.column.isEmpty();
     }
 
+    /**
+     * This method checks is the column if full
+     *
+     * @return true if the column is full
+     */
     public boolean check_full() {
+
         return !Objects.equals(this.getColumn().get(this.height - 1).getColor(), "blank");
     }
 

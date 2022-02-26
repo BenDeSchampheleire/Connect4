@@ -6,6 +6,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * This class launches the game
+ *
+ */
 public class GameApplication extends Application {
 
     public void start(Stage primaryStage) throws IOException {
@@ -17,7 +21,5 @@ public class GameApplication extends Application {
         primaryStage.show();
     }
 
-    public static void main(String[] args) {
-        launch();
-    }
+
 }

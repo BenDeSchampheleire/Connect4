@@ -1,10 +1,14 @@
 package application;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.Objects;
 
 import game.Checker;
 import game.Column;
 import game.Grid;
+import game.ServeurTCP;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
@@ -23,7 +27,44 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-public class Controller {
+/**
+ * This class represents the graphical interface
+ * And handles the unfolding of the game
+ *
+ */
+public class Controller implements PropertyChangeListener {
+
+    public Automate automate;
+    private Grid grid;
+    boolean update;
+
+    public Controller() {
+        // On crée le client TCP
+        ClientTCP clienttcp = new ClientTCP("localhost", 6666);
+
+        // Et l'automate (le modèle) de l'interface graphique
+        automate = new Automate(clienttcp);
+        System.out.println("Creation de l'automate: " + automate);
+
+        // On "écoute" le serveur
+        automate.connexionGame();
+        this.grid = automate.demandeGrid();
+        automate.deconnexionGame();
+        System.out.println(this.grid.serveurGame.getNotifier());
+        if (this.grid == null) {
+            System.out.println("Il faut lancer le serveur");
+        }
+        getGrid().serveurGame.getNotifier().addPropertyChangeListener(this);
+        automate.getNotifier().addPropertyChangeListener(this);
+
+        this.update = false;
+
+
+    }
+
+    public void setGrid(Grid grid) {this.grid = grid;}
+
+    public Grid getGrid() {return grid;}
 
     @FXML
     private Button buttonStart;
@@ -33,21 +74,39 @@ public class Controller {
 
     @FXML
     protected void quitWindow() {
+
         Stage stage = (Stage)this.buttonQuit.getScene().getWindow();
         stage.close();
     }
 
     public void changeScene() {
-        Scene scene = this.buttonQuit.getScene();
-        Window window = scene.getWindow();
-        Stage stage = (Stage) window;
+        boolean connexionOk = automate.connexionGame();
+        if (connexionOk == true) {
+//            Grid grid = automate.demandeGrid();
+//            automate.deconnexionGame();
+//            automate.connexionGame();
+            String color = automate.demandeColor();
+            automate.deconnexionGame();
+            System.out.println("Dans le controller: " + grid);
+            if (!Objects.equals(color, "white")) {
+                Scene scene = this.buttonQuit.getScene();
+                Window window = scene.getWindow();
+                Stage stage = (Stage) window;
 
-        Grid grid = new Grid(6, 6);
+                setGrid(grid);
 
-        drawBoard(stage,grid);
-        window.centerOnScreen();
+                drawBoard(stage, getGrid());
+                window.centerOnScreen();
+            }
+        }
     }
 
+    /**
+     *
+     * @param scene: scene where the screen is displayed
+     *        winner: color of the winner's team
+     *
+     */
     public void winScreen(Scene scene, String winner) throws IOException {
 
         final VBox vbox = new VBox();
@@ -67,35 +126,26 @@ public class Controller {
 
         switch (winner) {
             case "red" -> {
-                playerName.setText("Red wins");
+                playerName.setText("Red wins !");
                 playerName.setTextFill(Color.RED);
             }
             case "yellow" -> {
-                playerName.setText("Yellow wins");
+                playerName.setText("Yellow wins !");
                 playerName.setTextFill(Color.YELLOW);
             }
-            case "nobody" -> playerName.setText("It's a draw");
+            case "nobody" -> playerName.setText("It's a draw !");
         }
 
     }
 
+    /**
+     * This method draws the board on which the game takes place
+     *
+     * @param stage: stage on which the board is displayed
+     *        grid: the grid object, used to know the number of rows and columns to draw
+     *
+     */
     public void drawBoard(Stage stage, Grid grid) {
-
-        /* asks the user how many columns he wants
-        int columnNumber;
-        do {
-            System.out.println("How many columns? (Has to be between 4 and 8) ");
-            Scanner Csc = new Scanner(System.in);
-            columnNumber = Csc.nextInt();
-        } while (columnNumber < 4 || columnNumber > 8);
-
-        // asks the user how many rows he wants
-        int rowNumber;
-        do {
-            System.out.println("How many rows? (Has to be between 4 and 8) ");
-            Scanner Rsc = new Scanner(System.in);
-            rowNumber = Rsc.nextInt();
-        } while (rowNumber < 4 || rowNumber > 8);*/
 
         final BorderPane borderPane = new BorderPane();
         final GridPane gridPane = new GridPane();
@@ -125,6 +175,13 @@ public class Controller {
         stage.show();
     }
 
+    /**
+     * This method handles the unfolding of the game and the behavior of the grid's cases
+     *
+     * @param gridPane: the visual grid
+     *        grid: the grid object
+     *
+     */
     private void drawGrid(final GridPane gridPane, Grid grid){
 
         SimpleObjectProperty<Color> playerColor = new SimpleObjectProperty<>(Color.RED);
@@ -157,43 +214,48 @@ public class Controller {
 
                     // displays a red or yellow preview checker whenever the player puts the mouse on a playable cell
                     checkerPreview.setOnMouseEntered(arg0 -> {
-                        if (playerColor.get() == Color.RED) {
-                            checkerPreview.setFill(Color.RED);
-                        } else {
-                            checkerPreview.setFill(Color.YELLOW);
+                        // connect to the game
+                        automate.connexionGame();
+                        // if it is his turn to play
+                        boolean myTurn;
+                        myTurn = automate.demandeTurn();
+                        automate.deconnexionGame();
+                        if (myTurn) {
+                            System.out.println("your turn");
+                            if (Objects.equals(automate.getColor(), "red")) {
+                                checkerPreview.setFill(Color.RED);
+                            } else {
+                                checkerPreview.setFill(Color.YELLOW);
+                            }
                         }
+
                     });
 
                     // removes the preview checker whenever the player takes the mouse off the cell
                     checkerPreview.setOnMouseExited(arg0 -> checkerPreview.setFill(Color.TRANSPARENT));
 
-                    // checkers
-                    final Circle checker_circle = new Circle(40);
-                    switch (checker.getColor()) {
-                        case "red" -> checker_circle.setFill(Color.RED);
-                        case "yellow" -> checker_circle.setFill(Color.YELLOW);
-                        case "blank" -> {
-                            checker_circle.setFill(Color.TRANSPARENT);
-                            checker_circle.setTranslateY(-100 * (row + 1));
-                        }
-                    }
-
-                    final TranslateTransition translateTransition = new TranslateTransition(Duration.millis(200), checker_circle);
 
                     checkerPreview.setOnMouseClicked(arg0 -> {
-                        translateTransition.setToY(0);
-                        translateTransition.play();
-                        if (playerColor.get() == Color.RED) {
-                            checker_circle.fillProperty().bind(new SimpleObjectProperty<>(Color.RED));
-                            checker.setColor("red");
-                            playerColor.set(Color.YELLOW);
-                        } else {
-                            checker_circle.fillProperty().bind(new SimpleObjectProperty<>(Color.YELLOW));
-                            checker.setColor("yellow");
-                            playerColor.set(Color.RED);
+                        // connect to the game
+                        automate.connexionGame();
+                        // if it is his turn to play
+                        boolean myTurn;
+                        myTurn = automate.demandeTurn();
+                        automate.deconnexionGame();
+                        if (myTurn) {
+                            automate.connexionGame();
+                            automate.demandePlay(column.getId(), automate.getColor(), checker);
                         }
+                        else {
+                            System.out.println("It is not your turn to play");
+                        }
+                        automate.deconnexionGame();
 
-                        switch ( grid.EndOfGame() ) {
+                        automate.connexionGame();
+                        this.grid = automate.demandeGrid();
+                        automate.deconnexionGame();
+
+                        switch ( this.grid.EndOfGame() ) {
                             case "red" -> {
                                 try {
                                     winScreen(gridPane.getScene(),"red");
@@ -221,6 +283,16 @@ public class Controller {
 
                     StackPane stack = new StackPane();
 
+                    final Circle checker_circle = new Circle(40);
+                    switch (checker.getColor()) {
+                        case "red" -> checker_circle.setFill(Color.RED);
+                        case "yellow" -> checker_circle.setFill(Color.YELLOW);
+                        case "blank" -> {
+                            checker_circle.setFill(Color.TRANSPARENT);
+                            checker_circle.setTranslateY(-100 * (row + 1));
+                        }
+                    }
+
                     stack.getChildren().addAll(cell, checkerPreview, checker_circle);
 
                     gridPane.add(stack, col, row);
@@ -230,4 +302,45 @@ public class Controller {
             }
 
     }
-}
+
+    /**
+     * Cette méthode est appelée quand l'objet Observable fait appel à notifyObservers()
+     *
+     * Quand le serveur a joué il notifie les interfaces graphiques pour qu'elles se mettent à jour
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+
+
+//            automate.connexionGame();
+//            this.grid = automate.demandeGrid();
+//            automate.deconnexionGame();
+
+
+//            System.out.println("excellent");
+//            Checker checker = (Checker) evt.getOldValue();
+//            // checkers
+//            final Circle checker_circle = new Circle(40);
+//            switch (checker.getColor()) {
+//                case "red" -> checker_circle.setFill(Color.RED);
+//                case "yellow" -> checker_circle.setFill(Color.YELLOW);
+//            }
+//
+//            final TranslateTransition translateTransition = new TranslateTransition(Duration.millis(200), checker_circle);
+//
+//
+//            translateTransition.setToY(0);
+//            translateTransition.play();
+//            if (evt.getNewValue() == "red") {
+//                checker_circle.fillProperty().bind(new SimpleObjectProperty<>(Color.RED));
+//            //checker.setColor("red");
+//            }
+//            else {
+//                checker_circle.fillProperty().bind(new SimpleObjectProperty<>(Color.YELLOW));
+//            }
+//            System.out.println("La mise à jour de l'UI est maintenant !");
+
+        }
+        }
+
+

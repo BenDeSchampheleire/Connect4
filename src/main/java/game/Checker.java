@@ -1,11 +1,28 @@
 package game;
 
-public class Checker {
+import java.io.Serializable;
+
+/**
+ * This class represents the checkers
+ *
+ */
+public class Checker implements Serializable {
+
 
     private int position;
     private String color;
 
+    /**
+     * Creates a checker object
+     * A checker is white during the creation of a column
+     * And it becomes red or yellow during the game
+     *
+     * @param position: index of the checker in the column
+     *        color: color of the checker
+     *
+     */
     public Checker(int position, String color) {
+
         this.position = position;
         this.color = color;
     }
