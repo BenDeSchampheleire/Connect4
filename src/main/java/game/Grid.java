@@ -14,7 +14,7 @@ public class Grid implements IGrid, Serializable {
 
     private int width;
 
-    public ServeurTCP serveurGame;
+    public ServerTCP serverGame;
 
     private int height;
     private ArrayList<Column> grid;
@@ -33,8 +33,8 @@ public class Grid implements IGrid, Serializable {
     public Grid(int width, int height) {
 
         // Initialisation du serveur TCP
-        serveurGame = new ServeurTCP(6666);
-        serveurGame.setGrid(this);
+        serverGame = new ServerTCP(6666);
+        serverGame.setGrid(this);
 
         this.width = width;
         this.height = height;
@@ -130,11 +130,11 @@ public class Grid implements IGrid, Serializable {
         }
 
         display_grid();
-        System.out.println(serveurGame.getNotifier());
+        System.out.println(serverGame.getNotifier());
 
         // notifie l'interface graphique que la grille a changé
         // on envoie le pion a modifier et sa couleur
-        serveurGame.getNotifier().firePropertyChange("iPlayed", checkerSave , color);
+        serverGame.getNotifier().firePropertyChange("iPlayed", checkerSave , color);
 
     }
 
@@ -238,7 +238,7 @@ public class Grid implements IGrid, Serializable {
      *
      */
     public void startGame() {
-        serveurGame.go();
+        serverGame.go();
     }
 
     /**

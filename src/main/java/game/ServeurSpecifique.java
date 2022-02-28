@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.Socket;
 
 /**
- * Représente la gestion de la connexion d'un client avec le serveur. Cette
+ * Represents the  la gestion de la connexion d'un client avec le serveur. Cette
  * gestion repose sur une {@link Socket} et s'effectue dans un {@link Thread}
  *
  *
@@ -12,9 +12,9 @@ import java.net.Socket;
 class ServeurSpecifique extends Thread {
 
     private final Socket clientSocket;
-    private final ServeurTCP monServeur;
+    private final ServerTCP monServeur;
 
-    public ServeurSpecifique(Socket uneSocket, ServeurTCP unServeur) {
+    public ServeurSpecifique(Socket uneSocket, ServerTCP unServeur) {
         super("ServeurThread");
 
         clientSocket = uneSocket;

@@ -8,8 +8,6 @@ import java.util.Objects;
 import game.Checker;
 import game.Column;
 import game.Grid;
-import game.ServeurTCP;
-import javafx.animation.TranslateTransition;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -25,7 +23,6 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.util.Duration;
 
 /**
  * This class represents the graphical interface
@@ -50,11 +47,11 @@ public class Controller implements PropertyChangeListener {
         automate.connexionGame();
         this.grid = automate.demandeGrid();
         automate.deconnexionGame();
-        System.out.println(this.grid.serveurGame.getNotifier());
+        System.out.println(this.grid.serverGame.getNotifier());
         if (this.grid == null) {
             System.out.println("Il faut lancer le serveur");
         }
-        getGrid().serveurGame.getNotifier().addPropertyChangeListener(this);
+        getGrid().serverGame.getNotifier().addPropertyChangeListener(this);
         automate.getNotifier().addPropertyChangeListener(this);
 
         this.update = false;

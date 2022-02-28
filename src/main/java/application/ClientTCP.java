@@ -160,7 +160,7 @@ public class ClientTCP {
             socOut.println(uneChaine);
             socOut.flush();
 
-            Grid grid = (Grid) objectInputStream.readObject(); //probleme ici
+            Grid grid = (Grid) objectInputStream.readObject();
 
             System.out.println("Client msgServeur " + grid);
             return grid;

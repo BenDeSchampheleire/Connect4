@@ -1,5 +1,5 @@
 package application;
-import servPattern.Grid;
+import game.Grid;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;

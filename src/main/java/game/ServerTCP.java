@@ -7,22 +7,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Représente un serveur TCP, qui écoute sur un numéro de port
+ * Represents a ServerTCP, that listens a certain port number
  *
  */
-public class ServeurTCP implements Serializable{
+public class ServerTCP implements Serializable{
 
-    private final int numeroPort;
+    private final int numberPort;
     public IGrid grid;
     private final PropertyChangeSupport notifier;
-    int nbConnectionMax;
-    int nbConnection;
+    int nbConnectionsMax;
+    int nbConnections;
 
-    ServeurTCP(int unNumeroPort) {
+    ServerTCP(int numberPort) {
         notifier = new PropertyChangeSupport(this);
-        numeroPort = unNumeroPort;
-        nbConnectionMax = 2;
-        nbConnection = 0;
+        this.numberPort = numberPort;
+        nbConnectionsMax = 2;
+        nbConnections = 0;
     }
 
     public PropertyChangeSupport getNotifier() {return notifier;}
@@ -35,31 +35,29 @@ public class ServeurTCP implements Serializable{
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
         try {
-            serverSocket = new ServerSocket(numeroPort);
+            serverSocket = new ServerSocket(numberPort);
         } catch (IOException e) {
-            System.out.println("Could not listen on port: " + numeroPort + ", " + e);
+            System.out.println("Could not listen on port: " + numberPort + ", " + e);
             System.exit(1);
         }
 
-        // Attention: on décide arbitrairement de ne servir que 4 clients, puis de
-        // fermer la connexion
-        while (nbConnection <= nbConnectionMax) {
+        while (nbConnections <= nbConnectionsMax) {
             try {
-                System.out.println(" Attente du serveur pour la communication d'un client ");
-                System.out.println(" Nombre de clients actuellement " + nbConnection);
+                System.out.println("Server is waiting for a client");
+                System.out.println("Current number of clients: " + nbConnections);
                 clientSocket = serverSocket.accept();
-                this.nbConnectionMax ++;
+                this.nbConnectionsMax++; // nbConnections
             } catch (IOException e) {
                 System.out.println("Accept failed: " + 6666 + ", " + e);
                 System.exit(1);
             }
-            ServeurSpecifique st = new ServeurSpecifique(clientSocket, this);
-            st.start();
+            ServeurSpecifique specificServer = new ServeurSpecifique(clientSocket, this);
+            specificServer.start();
         }
 
         try {
             serverSocket.close();
-            this.nbConnectionMax ++;
+            this.nbConnections--;
         } catch (IOException e) {
             System.out.println("Could not close");
         }
