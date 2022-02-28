@@ -10,6 +10,7 @@ module connect4 {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires junit;
+    requires java.desktop;
 
     opens application to javafx.fxml;
     exports application;

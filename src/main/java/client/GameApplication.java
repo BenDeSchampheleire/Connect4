@@ -1,4 +1,4 @@
-package application;
+package client;
 
 import java.io.IOException;
 import javafx.application.Application;
@@ -21,5 +21,7 @@ public class GameApplication extends Application {
         primaryStage.show();
     }
 
-
+    public static void main(String[] args) {
+        launch();
+    }
 }

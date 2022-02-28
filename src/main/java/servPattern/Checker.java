@@ -1,12 +1,10 @@
-package game;
-
-import java.io.Serializable;
+package servPattern;
 
 /**
  * This class represents the checkers
  *
  */
-public class Checker implements Serializable {
+public class Checker {
 
 
     private int position;

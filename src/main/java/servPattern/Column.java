@@ -1,6 +1,5 @@
-package game;
+package servPattern;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -8,7 +7,7 @@ import java.util.Objects;
  * This class represents each column
  *
  */
-public class Column implements Serializable {
+public class Column {
 
 
     private int id;

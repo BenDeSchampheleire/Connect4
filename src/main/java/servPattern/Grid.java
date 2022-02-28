@@ -1,26 +1,22 @@
-package game;
+package servPattern;
 
-import java.io.Serializable;
+import servPattern.Checker;
+import servPattern.Column;
+
 import java.util.ArrayList;
-import java.util.Objects;
 
 import static org.junit.Assert.assertTrue;
-
 /**
  * This class represents the grid
  *
  */
-public class Grid implements IGrid, Serializable {
+public class Grid {
 
     private int width;
 
-    public ServeurTCP serveurGame;
 
     private int height;
     private ArrayList<Column> grid;
-
-    private int num;
-    private String turn;
 
     /**
      * Creates a grid object
@@ -32,32 +28,14 @@ public class Grid implements IGrid, Serializable {
      */
     public Grid(int width, int height) {
 
-        // Initialisation du serveur TCP
-        serveurGame = new ServeurTCP(6666);
-        serveurGame.setGrid(this);
-
         this.width = width;
         this.height = height;
         this.grid = new ArrayList<>(width);
-
-        // Used to assign color to an automate depending on its parity
-        this.num = 0;
-
-        // Initialised to "red" since it is the first team to play
-        this.turn = "red";
 
         for (int i = 0; i < this.width; i++) {
             this.grid.add(new Column(i, this.height));
         }
     }
-
-    public String getTurn() {return turn;}
-
-    public void setTurn(String turn) {this.turn = turn;}
-
-    public void setNum(int num) {this.num = num;}
-
-    public int getNum() {return num;}
 
     public int getWidth() {
         return width;
@@ -106,36 +84,19 @@ public class Grid implements IGrid, Serializable {
      *        color: checker's color
      *
      */
-    @Override
     public void play_checker(int column_number, String color) {
 
         assertTrue(1 <= column_number && column_number <= this.width);
 
         Column column = this.getGrid().get(column_number - 1);
-        Checker checkerSave = null;
+
         for (int i = 0; i < this.height; i++) {
             Checker checker = column.getColumn().get(i);
             if (checker.getColor().equals("blank")) {
                 checker.setColor(color);
-                checkerSave = checker;
                 break;
             }
         }
-
-        if (Objects.equals(getTurn(), "red")) {
-            setTurn("yellow");
-        }
-        else {
-            setTurn("red");
-        }
-
-        display_grid();
-        System.out.println(serveurGame.getNotifier());
-
-        // notifie l'interface graphique que la grille a changé
-        // on envoie le pion a modifier et sa couleur
-        serveurGame.getNotifier().firePropertyChange("iPlayed", checkerSave , color);
-
     }
 
     /**
@@ -231,46 +192,5 @@ public class Grid implements IGrid, Serializable {
             winner = "ongoing";
         }
         return winner;
-    }
-
-    /**
-     * This method starts the server that hosts the game
-     *
-     */
-    public void startGame() {
-        serveurGame.go();
-    }
-
-    /**
-     * This method assigns a color to an automate
-     *
-     * @return the asigned color
-     */
-    public String assignColor() {
-        String color;
-        if (this.getNum() % 2 == 0) {
-            color = "red";
-        }
-        else {
-            color = "yellow";
-        }
-        setNum(getNum() + 1);
-        return color;
-    }
-
-    /**
-     * This method checks whose turn it is to play
-     *
-     * @return the color whose turn it is to play
-     */
-    public String playerTurn() {
-        String color;
-        if (Objects.equals(this.getTurn(), "red")) {
-            color = "red";
-        }
-        else {
-            color = "yellow";
-        }
-        return color;
     }
 }
