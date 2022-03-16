@@ -6,7 +6,7 @@ public interface IGrid {
 
     void startGame();
 
-    String assignColor();
+    //String assignColor();
 
     String playerTurn();
 

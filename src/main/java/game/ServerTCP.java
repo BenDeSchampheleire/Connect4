@@ -13,7 +13,7 @@ import java.net.Socket;
 public class ServerTCP implements Serializable{
 
     private final int numberPort;
-    public IGrid grid;
+    public Grid grid;
     private final PropertyChangeSupport notifier;
     int nbConnectionsMax;
     int nbConnections;
@@ -27,9 +27,9 @@ public class ServerTCP implements Serializable{
 
     public PropertyChangeSupport getNotifier() {return notifier;}
 
-    public void setGrid(IGrid grid) {this.grid = grid;}
+    public void setGrid(Grid grid) {this.grid = grid;}
 
-    public IGrid getGrid() {return grid;}
+    public Grid getGrid() {return grid;}
 
     public void go() {
         ServerSocket serverSocket = null;
@@ -41,29 +41,35 @@ public class ServerTCP implements Serializable{
             System.exit(1);
         }
 
-        while (nbConnections <= nbConnectionsMax) {
+        while (true) {
             try {
                 System.out.println("Server is waiting for a client");
                 System.out.println("Current number of clients: " + nbConnections);
                 clientSocket = serverSocket.accept();
-                this.nbConnectionsMax++; // nbConnections
+                this.nbConnections++;
             } catch (IOException e) {
-                System.out.println("Accept failed: " + 6666 + ", " + e);
+                System.out.println("Accept failed: " + numberPort + ", " + e);
                 System.exit(1);
             }
-            ServeurSpecifique specificServer = new ServeurSpecifique(clientSocket, this);
+            SpecificServer specificServer = new SpecificServer(clientSocket, this);
             specificServer.start();
         }
 
-        try {
+        /*try {
             serverSocket.close();
             this.nbConnections--;
         } catch (IOException e) {
             System.out.println("Could not close");
-        }
+        }*/
     }
 
-
-
+    public String giveColor() {
+        if (this.nbConnections % 2 == 0) {
+            return "red";
+        } else {
+            return "yellow";
+            }
+        }
 }
+
 

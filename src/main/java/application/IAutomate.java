@@ -2,7 +2,7 @@ package application;
 
 public interface IAutomate {
 
-    public boolean connexionGame();
+    public boolean connectGame();
 
-    public void deconnexionGame();
+    public void deconnectGame();
 }

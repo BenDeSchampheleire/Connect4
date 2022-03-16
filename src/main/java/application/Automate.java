@@ -1,6 +1,5 @@
 package application;
 
-import game.Checker;
 import game.Grid;
 
 import java.beans.PropertyChangeSupport;
@@ -9,18 +8,14 @@ import java.util.Objects;
 public class Automate implements IAutomate{
 
     private String color;
-    public ClientTCP monClientTCP; // ## link monClientTCP
+    public ClientTCP myClientTCP;
     private final PropertyChangeSupport notifier;
 
-    public Automate(ClientTCP unClient) {
+    public Automate(ClientTCP aClient) {
 
-        this.color = "white";
-
-        monClientTCP = unClient;
-
+        this.color = "red";
+        myClientTCP = aClient;
         notifier = new PropertyChangeSupport(this);
-
-        System.out.println("Couleur automate " + getColor());
     }
 
 
@@ -33,59 +28,47 @@ public class Automate implements IAutomate{
     }
 
     @Override
-    public boolean connexionGame() {
-        return monClientTCP.connexionServeur();
+    public boolean connectGame() {
+        return myClientTCP.connectServer();
     }
 
     @Override
-    public void deconnexionGame() {
-        monClientTCP.deconnexionServeur();
+    public void deconnectGame() {
+        myClientTCP.deconnectServer();
     }
 
-    public void demandePlay(int columnNumber, String color, Checker checker) {
+    public void askPlay(int columnNumber, String color) {
 
-        System.out.println("****** demande play ********");
+        System.out.println("****** Ask to play ********");
 
-        if (Objects.equals(color, "red")) {
-            monClientTCP.transmettreChaine("red " + columnNumber);
-        }
-        else {
-            monClientTCP.transmettreChaine("yellow " + columnNumber);
-        }
-
-        //notifier.firePropertyChange("play", checker, color);
-        //play(laSomme);
-
+        myClientTCP.transmitCommand(color + " " + columnNumber);
     }
 
     public String demandeColor() {
-        String color;
+
         System.out.println("****** demande color ********");
 
-        color = monClientTCP.transmettreChaine("GiveMeAColor");
+        String color = myClientTCP.transmitCommand("GiveMeAColor");
         setColor(color);
-        System.out.println("colorAssigned: " + color);
+        System.out.println("Color assigned: " + color);
         return color;
     }
 
-    public boolean demandeTurn() {
-        boolean iPlay;
-        String color;
-        System.out.println("****** demande turn ********");
+    public boolean askTurn() {
 
-        color = monClientTCP.transmettreChaine("MyTurnToPlay?");
+        System.out.println("****** Ask turn ********");
+
+        String color = myClientTCP.transmitCommand("MyTurnToPlay?");
 
         // true if it is his turn to play, false otherwise
-        iPlay = Objects.equals(color, this.getColor());
-
-        return iPlay;
+        return Objects.equals(color, this.getColor());
     }
 
-    public Grid demandeGrid() {
+    public Grid askGrid() {
         Grid grid;
-        System.out.println("****** demande grid ********");
+        System.out.println("****** Ask grid ********");
 
-        grid = monClientTCP.transmettreChaineGrid("GiveMeTheGrid");
+        grid = myClientTCP.transmitGrid("GiveMeTheGrid");
 
         return grid;
     }

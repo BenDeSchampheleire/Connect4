@@ -14,12 +14,11 @@ public class Grid implements IGrid, Serializable {
 
     private int width;
 
-    public ServerTCP serverGame;
+    public ServerTCP GameServer;
 
     private int height;
     private ArrayList<Column> grid;
 
-    private int num;
     private String turn;
 
     /**
@@ -32,16 +31,12 @@ public class Grid implements IGrid, Serializable {
      */
     public Grid(int width, int height) {
 
-        // Initialisation du serveur TCP
-        serverGame = new ServerTCP(6666);
-        serverGame.setGrid(this);
+        GameServer = new ServerTCP(6666);
+        GameServer.setGrid(this);
 
         this.width = width;
         this.height = height;
         this.grid = new ArrayList<>(width);
-
-        // Used to assign color to an automate depending on its parity
-        this.num = 0;
 
         // Initialised to "red" since it is the first team to play
         this.turn = "red";
@@ -54,10 +49,6 @@ public class Grid implements IGrid, Serializable {
     public String getTurn() {return turn;}
 
     public void setTurn(String turn) {this.turn = turn;}
-
-    public void setNum(int num) {this.num = num;}
-
-    public int getNum() {return num;}
 
     public int getWidth() {
         return width;
@@ -130,11 +121,11 @@ public class Grid implements IGrid, Serializable {
         }
 
         display_grid();
-        System.out.println(serverGame.getNotifier());
+        System.out.println(GameServer.getNotifier());
 
         // notifie l'interface graphique que la grille a changé
         // on envoie le pion a modifier et sa couleur
-        serverGame.getNotifier().firePropertyChange("iPlayed", checkerSave , color);
+        GameServer.getNotifier().firePropertyChange("iPlayed", checkerSave , color);
 
     }
 
@@ -238,7 +229,7 @@ public class Grid implements IGrid, Serializable {
      *
      */
     public void startGame() {
-        serverGame.go();
+        GameServer.go();
     }
 
     /**
@@ -246,7 +237,7 @@ public class Grid implements IGrid, Serializable {
      *
      * @return the asigned color
      */
-    public String assignColor() {
+   /* public String assignColor() {
         String color;
         if (this.getNum() % 2 == 0) {
             color = "red";
@@ -256,7 +247,7 @@ public class Grid implements IGrid, Serializable {
         }
         setNum(getNum() + 1);
         return color;
-    }
+    }*/
 
     /**
      * This method checks whose turn it is to play

@@ -13,11 +13,11 @@ import java.net.UnknownHostException;
  */
 public class ClientTCP {
 
-    private final int numeroPort; // ## attribute numeroPort
-    private final String nomServeur; // ## attribute nomServeur
+    private final int PortNumber; // ## attribute PortNumber
+    private final String ServerName; // ## attribute ServerName
     private BufferedReader socIn; // ## link socIn
     private PrintStream socOut; // ## link socOut
-    private Socket socketServeur; // ## link socketServeur
+    private Socket socketServer; // ## link socketServer
     private InputStream inputStream; //
     private ObjectInputStream objectInputStream;
 
@@ -25,12 +25,12 @@ public class ClientTCP {
      * Création d'un nouveau {@link ClientTCP} avec un nom de serveur et un numéro
      * de port
      *
-     * @param unNomServeur
-     * @param unNumero
+     * @param aServerName
+     * @param aPortNumber
      */
-    public ClientTCP(String unNomServeur, int unNumero) {
-        numeroPort = unNumero;
-        nomServeur = unNomServeur;
+    public ClientTCP(String aServerName, int aPortNumber) {
+        PortNumber = aPortNumber;
+        ServerName = aServerName;
     }
 
 
@@ -43,44 +43,46 @@ public class ClientTCP {
      *
      * @return true si la connexion s'est bien déroulée
      */
-    public boolean connexionServeur() {
-        boolean ok = false;
+    public boolean connectServer() {
+        System.out.println("Connect to Server");
+        boolean connected = false;
         try {
-            System.out.println("Tentative : " + nomServeur + " -- " + numeroPort);
-            socketServeur = new Socket(nomServeur, numeroPort);
-            socOut = new PrintStream(socketServeur.getOutputStream());
-            socIn = new BufferedReader(new InputStreamReader(socketServeur.getInputStream()));
-            inputStream = socketServeur.getInputStream();
+            System.out.println("Trying: " + ServerName + " -- " + PortNumber);
+            socketServer = new Socket(ServerName, PortNumber);
+            socOut = new PrintStream(socketServer.getOutputStream());
+            socIn = new BufferedReader(new InputStreamReader(socketServer.getInputStream()));
+            inputStream = socketServer.getInputStream();
             objectInputStream = new ObjectInputStream(inputStream);
-            System.out.println("Connection faite");
-            ok = true;
+            System.out.println("Connection successful");
+            connected = true;
         }
         catch (UnknownHostException e) {
-            System.err.println("Serveur inconnu : " + e);
+            System.err.println("Unknown server: " + e);
         }
         catch (ConnectException e) {
-            System.err.println("Serveur off : " + e);
-            System.out.println("Il faut lancer le serveur");
+            System.err.println("Server offline: " + e);
+            System.out.println("Please activate the server");
         }
         catch (Exception e) {
-            System.err.println("Exception:  " + e);
+            System.err.println("Exception: " + e);
             }
 
-        return ok;
+        return connected;
     }
 
     /**
      * Commande la déconnexion au serveur
      */
-    public void deconnexionServeur() {
+    public void deconnectServer() {
+        System.out.println("Deconnect from Server");
         try {
             socOut.close();
             socIn.close();
             inputStream.close();
             objectInputStream.close();
-            socketServeur.close();
+            socketServer.close();
         } catch (Exception e) {
-            System.err.println("Exception:  " + e);
+            System.err.println("Exception: " + e);
         }
     }
 
@@ -90,58 +92,32 @@ public class ClientTCP {
      *
      * Cette méthode nécessite que la connexion soit effective
      *
-     * @param uneChaine
+     * @param aCommand
      * @return
      */
-    public String transmettreChaine(String uneChaine) {
-        String msgServeur = null;
+    public String transmitCommand(String aCommand) {
+        String messageServer;
         try {
 
-            System.out.println("Client " + uneChaine);
+            System.out.println("Client: " + aCommand);
 
-            socOut.println(uneChaine);
+            socOut.println(aCommand);
             socOut.flush();
 
-            msgServeur = socIn.readLine();
+            messageServer = socIn.readLine();
 
-            System.out.println("Client msgServeur " + msgServeur);
-            return msgServeur;
+            System.out.println("Server: " + messageServer);
+            return messageServer;
 
         } catch (UnknownHostException e) {
-            System.err.println("Serveur inconnu : " + e);
+            System.err.println("Unknown Server: " + e);
             return null;
         } catch (Exception e) {
-            System.err.println("Exception:  " + e);
+            System.err.println("Exception: " + e);
             return null;
         }
     }
 
-    /**
-     * Echaînement d'une connexion au serveur, de la transmission d'une chaine de
-     * caractère, et de la déconnexion
-     *
-     * @param uneChaine
-     * @return
-     */
-    public String connexionTransmettreChaine(String uneChaine) {
-        String msgServeur = null;
-        if (connexionServeur() == true) {
-            try {
-
-                System.out.println("Client " + uneChaine);
-                socOut.println(uneChaine);
-                socOut.flush();
-
-                msgServeur = socIn.readLine();
-                System.out.println("Client msgServeur " + msgServeur);
-                deconnexionServeur();
-            } catch (Exception e) {
-                System.err.println("Exception:  " + e);
-            }
-        }
-
-        return msgServeur;
-    }
 
     /**
      * Transmet une chaine de caractères sur la Socket, et retourne la réponse sous
@@ -149,27 +125,27 @@ public class ClientTCP {
      *
      * Cette méthode nécessite que la connexion soit effective
      *
-     * @param uneChaine
+     * @param aCommand
      * @return la grille
      */
-    public Grid transmettreChaineGrid(String uneChaine) {
+    public Grid transmitGrid(String aCommand) {
         try {
 
-            System.out.println("Client " + uneChaine);
+            System.out.println("Client: " + aCommand);
 
-            socOut.println(uneChaine);
+            socOut.println(aCommand);
             socOut.flush();
 
             Grid grid = (Grid) objectInputStream.readObject();
 
-            System.out.println("Client msgServeur " + grid);
+            System.out.println("Server: " + grid);
             return grid;
 
         } catch (UnknownHostException e) {
-            System.err.println("Serveur inconnu : " + e);
+            System.err.println("Unknown Server: " + e);
             return null;
         } catch (Exception e) {
-            System.err.println("Exception:  " + e);
+            System.err.println("Exception: " + e);
             return null;
         }
     }

@@ -8,7 +8,6 @@ import java.util.Objects;
 import game.Checker;
 import game.Column;
 import game.Grid;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -36,32 +35,27 @@ public class Controller implements PropertyChangeListener {
     boolean update;
 
     public Controller() {
-        // On crée le client TCP
-        ClientTCP clienttcp = new ClientTCP("localhost", 6666);
 
-        // Et l'automate (le modèle) de l'interface graphique
-        automate = new Automate(clienttcp);
-        System.out.println("Creation de l'automate: " + automate);
+        ClientTCP clientTCP = new ClientTCP("localhost", 6666);
 
-        // On "écoute" le serveur
-        automate.connexionGame();
-        this.grid = automate.demandeGrid();
-        automate.deconnexionGame();
-        System.out.println(this.grid.serverGame.getNotifier());
+        automate = new Automate(clientTCP);
+
+        // listen to the Server
+        automate.connectGame();
+        this.grid = automate.askGrid(); // get the grid from the Server
+        automate.setColor( this.grid.GameServer.giveColor() );
+        System.out.println("Automate color: " + this.grid.GameServer.giveColor());
+        automate.deconnectGame();
+
         if (this.grid == null) {
-            System.out.println("Il faut lancer le serveur");
+            System.out.println("Launch the Server");
         }
-        getGrid().serverGame.getNotifier().addPropertyChangeListener(this);
+        grid.GameServer.getNotifier().addPropertyChangeListener(this);
         automate.getNotifier().addPropertyChangeListener(this);
 
         this.update = false;
 
-
     }
-
-    public void setGrid(Grid grid) {this.grid = grid;}
-
-    public Grid getGrid() {return grid;}
 
     @FXML
     private Button buttonStart;
@@ -77,25 +71,13 @@ public class Controller implements PropertyChangeListener {
     }
 
     public void changeScene() {
-        boolean connexionOk = automate.connexionGame();
-        if (connexionOk == true) {
-//            Grid grid = automate.demandeGrid();
-//            automate.deconnexionGame();
-//            automate.connexionGame();
-            String color = automate.demandeColor();
-            automate.deconnexionGame();
-            System.out.println("Dans le controller: " + grid);
-            if (!Objects.equals(color, "white")) {
-                Scene scene = this.buttonQuit.getScene();
-                Window window = scene.getWindow();
-                Stage stage = (Stage) window;
 
-                setGrid(grid);
+        Scene scene = this.buttonQuit.getScene();
+        Window window = scene.getWindow();
+        Stage stage = (Stage) window;
 
-                drawBoard(stage, getGrid());
-                window.centerOnScreen();
-            }
-        }
+        drawBoard(stage, this.grid);
+        window.centerOnScreen();
     }
 
     /**
@@ -181,8 +163,6 @@ public class Controller implements PropertyChangeListener {
      */
     private void drawGrid(final GridPane gridPane, Grid grid){
 
-        SimpleObjectProperty<Color> playerColor = new SimpleObjectProperty<>(Color.RED);
-
         gridPane.getChildren().clear();
 
             // creation of the visual grid
@@ -211,12 +191,13 @@ public class Controller implements PropertyChangeListener {
 
                     // displays a red or yellow preview checker whenever the player puts the mouse on a playable cell
                     checkerPreview.setOnMouseEntered(arg0 -> {
+
                         // connect to the game
-                        automate.connexionGame();
+                        automate.connectGame();
+
                         // if it is his turn to play
-                        boolean myTurn;
-                        myTurn = automate.demandeTurn();
-                        automate.deconnexionGame();
+                        boolean myTurn = automate.askTurn();
+                        automate.deconnectGame();
                         if (myTurn) {
                             System.out.println("your turn");
                             if (Objects.equals(automate.getColor(), "red")) {
@@ -234,23 +215,25 @@ public class Controller implements PropertyChangeListener {
 
                     checkerPreview.setOnMouseClicked(arg0 -> {
                         // connect to the game
-                        automate.connexionGame();
+                        automate.connectGame();
                         // if it is his turn to play
                         boolean myTurn;
-                        myTurn = automate.demandeTurn();
-                        automate.deconnexionGame();
+                        myTurn = automate.askTurn();
+                        automate.deconnectGame();
                         if (myTurn) {
-                            automate.connexionGame();
-                            automate.demandePlay(column.getId(), automate.getColor(), checker);
+                            automate.connectGame();
+                            automate.askPlay(column.getId(), automate.getColor());
                         }
                         else {
                             System.out.println("It is not your turn to play");
                         }
-                        automate.deconnexionGame();
+                        automate.deconnectGame();
 
-                        automate.connexionGame();
-                        this.grid = automate.demandeGrid();
-                        automate.deconnexionGame();
+                        automate.connectGame();
+                        this.grid = automate.askGrid();
+                        automate.deconnectGame();
+
+                        drawGrid(gridPane,this.grid);
 
                         switch ( this.grid.EndOfGame() ) {
                             case "red" -> {
@@ -310,7 +293,7 @@ public class Controller implements PropertyChangeListener {
 
 
 //            automate.connexionGame();
-//            this.grid = automate.demandeGrid();
+//            this.grid = automate.askGrid();
 //            automate.deconnexionGame();
 
 
